@@ -63,38 +63,35 @@ require("lazy").setup({
 --   },
 -- }
 vim.o.winborder = "rounded" -- optional, for all floats
-
-vim.lsp.config("*", {
-  handlers = {
-    ["textDocument/hover"] = {
-      border = "rounded",
-      focusable = false,
-    },
-    ["textDocument/signature_help"] = {
-      border = "rounded",
-      focusable = false,
-    }
-  },
+vim.lsp.config("rust_analyzer", {
+  cmd = { "rust-analyzer" },
+  filetypes = { "rust" },
+  root_markers = { "Cargo.toml", "rust-project.json" },
+  on_attach = function(client, _)
+    -- Kill automatic signature help triggers
+    if client.server_capabilities.signatureHelpProvider then
+      client.server_capabilities.signatureHelpProvider.triggerCharacters = {}
+    end
+  end,
 })
-
--- Make ALL LSP floating windows non-focusable
-local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
-function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
-  opts = opts or {}
-  opts.focusable = false
-  opts.focus = false
-  return orig_util_open_floating_preview(contents, syntax, opts, ...)
+vim.lsp.handlers["textDocument/signatureHelp"] = function(err, result, ctx, config)
+  if not result or not result.signatures or #result.signatures == 0 then return end
+  vim.lsp.handlers["textDocument/signatureHelp"](err, result, ctx, 
+    vim.tbl_extend("force", config or {}, { border = "rounded" }))
 end
 
+vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "LSP hover" })
 
-vim.keymap.set('n', '<Esc>', function()
-  -- Close all floating windows
+
+vim.keymap.set("n", "<Esc>", function()
   for _, win in ipairs(vim.api.nvim_list_wins()) do
-    if vim.api.nvim_win_get_config(win).relative ~= '' then
+    local config = vim.api.nvim_win_get_config(win)
+    if config.relative ~= "" then
       vim.api.nvim_win_close(win, false)
     end
   end
-end, { desc = 'Close floating windows' })
+end, { desc = "Close floating windows" })
+
 
 vim.keymap.set('n', '<leader>lr', function()
   vim.diagnostic.reset()
@@ -199,6 +196,8 @@ local function toggle_gen_split()
   vim.cmd("Gen") -- or whatever command you use
 end
 
+vim.keymap.set("n", "<leader>ai", toggle_gen_split, { desc = "Toggle Gen AI" })
+
 -- Alternative
 -- vim.keymap.set("n", "<leader>ai", function()
 --   local found = false
@@ -219,7 +218,8 @@ end
 -- end)
 --
 
-vim.keymap.set("n", "<leader>ai", toggle_gen_split, { desc = "Toggle Gen AI" })
+-- Adding control for context popups
+
 
 
 
