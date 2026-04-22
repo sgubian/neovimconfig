@@ -130,33 +130,6 @@ vim.lsp.config("r_language_server", {
 })
 vim.lsp.enable "r_language_server"
 
-vim.lsp.config("rust_analyzer", {
-  cmd = { "rust-analyzer" },
-  filetypes = { "rust" },
-  root_markers = { "Cargo.toml", "rust-project.json" },
-  settings = {
-    ["rust-analyzer"] = {
-      cargo = {
-        allFeatures = true,
-      },
-      checkOnSave = {
-        command = "clippy",
-      },
-      procMacro = {
-        enable = true,
-        ignored = {},
-      },
-      diagnostics = {
-        enable = true,
-        experimental = {
-          enable = false, -- Disable experimental features that can cause issues
-        },
-      },
-    },
-  },
-})
-
-vim.lsp.enable "rust_analyzer"
 
 vim.keymap.set("n", "<leader>dd", function()
   vim.diagnostic.open_float(nil, {
@@ -198,6 +171,12 @@ end
 
 vim.keymap.set("n", "<leader>ai", toggle_gen_split, { desc = "Toggle Gen AI" })
 
+-- Reset diagnotic
+vim.keymap.set('n', '<leader>dR', '<cmd>lua vim.diagnostic.reset()<cr><cmd>LspRestart<cr>', 
+  { desc = 'Reset diagnostics and restart LSP' })
+
+vim.keymap.set('n', '<leader>dr', '<cmd>lua vim.diagnostic.reset()<cr>',
+  { desc = 'Reset diagnostics and restart LSP' })
 -- Alternative
 -- vim.keymap.set("n", "<leader>ai", function()
 --   local found = false
